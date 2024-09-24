@@ -1,6 +1,6 @@
 import pygame
 import random
-import moviepy.editor as mp
+
 
 
 pygame.init()
@@ -25,9 +25,8 @@ height = 800
 
 screen = pygame.display.set_mode((width, height))
 
-video = mp.VideoFileClip("C:/Users/Windows 10/Downloads/robot_video.mp4")  # Replace with your video path
-video = video.resize((width, height))  # Resize video to fit the screen
-
+main = pygame.image.load('C:/Users/Windows 10/Downloads/apocalyptic-destruction-war-zone-landscape.jpg')
+main = pygame.transform.scale(main,(width,height))
 
 background = pygame.image.load('C:/Users/Windows 10/Downloads/7402581.jpg')
 background = pygame.transform.scale(background, (width, height))
@@ -123,7 +122,7 @@ exit_rect = exit_text.get_rect(center=(width // 2, height // 2 + 120))
 in_menu = True
 game_over = False  # New variable to track Game Over state
 
-fps = 50
+fps = 60
 run = True
 clock = pygame.time.Clock()
 
@@ -314,8 +313,6 @@ while run:
             game_over = True
 
             # Collision detection between player and meteor
-    video_frame = video.get_frame(pygame.time.get_ticks() / 1000)  # Convert milliseconds to seconds
-    frame_surface = pygame.surfarray.make_surface(video_frame.swapaxes(0, 1))  # Convert numpy array to pygame surface
 
     # Display Game Over screen
     if game_over:
@@ -328,7 +325,7 @@ while run:
         continue
     # Drawing the menu or game screen
     if in_menu:
-        screen.blit(frame_surface, (0, 0))
+        screen.blit(main, (0, 0))
         screen.blit(text, text_rect)
         screen.blit(text2, text2_rect)
         screen.blit(text3, text3_rect)
