@@ -8,16 +8,16 @@ pygame.init()
 pygame.mixer.init()
 
 # Load and play background music
-pygame.mixer.music.load('C:/Users/Windows 10/Downloads/Main Title - The Terminator - Trim.mp3')  # Replace with your music file path
+pygame.mixer.music.load('sounds/robot_wars_main_theme.wav')  # Replace with your music file path
 pygame.mixer.music.play(-1)
 
-meteor_sound = pygame.mixer.Sound('C:/Users/Windows 10/Downloads/shooting-star-136692-[AudioTrimmer.com].mp3')  # Replace with your sound file path
+meteor_sound = pygame.mixer.Sound('sounds/meteor_sound.wav')  # Replace with your sound file path
 meteor_sound.set_volume(0.2)
 
-ray_sound = pygame.mixer.Sound('C:/Users/Windows 10/Downloads/laser-gun-81720-[AudioTrimmer.com].mp3')
+ray_sound = pygame.mixer.Sound('sounds/laser_gun.wav')
 ray_sound.set_volume(0.5)
 
-random_image_sound = pygame.mixer.Sound('C:/Users/Windows 10/Downloads/robot-walk-82499-[AudioTrimmer.com].mp3')  # Replace with your random image sound file path
+random_image_sound = pygame.mixer.Sound('sounds/robot_walk.wav')  # Replace with your random image sound file path
 random_image_sound.set_volume(0.5)
 
 width = 1300
@@ -25,26 +25,26 @@ height = 800
 
 screen = pygame.display.set_mode((width, height))
 
-main = pygame.image.load('C:/Users/Windows 10/Downloads/apocalyptic-destruction-war-zone-landscape.jpg')
+main = pygame.image.load('images/menu.png')
 main = pygame.transform.scale(main,(width,height))
 
-background = pygame.image.load('C:/Users/Windows 10/Downloads/7402581.jpg')
+background = pygame.image.load('images/background.png')
 background = pygame.transform.scale(background, (width, height))
 
-game_over_background = pygame.image.load('C:/Users/Windows 10/Downloads/apocalyptic-destruction-war-zone-landscape (1).jpg')  # Replace with your image path
+game_over_background = pygame.image.load('images/gameover.png')  # Replace with your image path
 game_over_background = pygame.transform.scale(game_over_background, (width, height))
 
-image = pygame.image.load('C:/Users/Windows 10/Downloads/soldier-uniform-cartoon-character (2).png')
+image = pygame.image.load('images/player_transparent.png')
 image = pygame.transform.scale(image, (250, 250))
 
-random_image = pygame.image.load('C:/Users/Windows 10/Downloads/robot1.png')  # Replace with your obstacle image path
+random_image = pygame.image.load('images/terminator_transparent.png')  # Replace with your obstacle image path
 random_image = pygame.transform.scale(random_image, (250, 250))
 
-random_image2 = pygame.image.load('C:/Users/Windows 10/Downloads/robot_2-removebg-preview.png')
+random_image2 = pygame.image.load('images/terminator2_transparent.png')
 random_image2 = pygame.transform.scale(random_image2, (250, 250))  # Second random image
 
 
-meteor_image = pygame.image.load('C:/Users/Windows 10/Downloads/astrroid.png')  # Replace with actual meteor image path
+meteor_image = pygame.image.load('images/astriod_transparent.png')  # Replace with actual meteor image path
 meteor_image = pygame.transform.scale(meteor_image, (100, 100))
 
 
@@ -172,11 +172,11 @@ while run:
         if keys[pygame.K_LEFT]:
             player_x -= player_speed
             facing_right = False
-            ray_direction = 1
+            ray_direction = -1  # Shoot toward the left
         if keys[pygame.K_RIGHT]:
             player_x += player_speed
             facing_right = True
-            ray_direction = -1
+            ray_direction = 1   # Shoot toward the right
 
         player_x = max(0, min(player_x, width - image.get_width()))
 
@@ -196,8 +196,14 @@ while run:
         # Ray shooting logic
         if keys[pygame.K_RETURN]:
             if len(rays) < 100:  # Limit the number of rays
+                # Start the laser from the gun side of the soldier.
+                if facing_right:
+                    ray_start_x = player_x + image.get_width() - 25
+                else:
+                    ray_start_x = player_x + 25
+
                 new_ray = {
-                    'x': player_x + image.get_width() // 4,
+                    'x': ray_start_x,
                     'y': player_y + image.get_height() // 4 - 21,
                     'direction': ray_direction
                 }
@@ -359,4 +365,3 @@ while run:
     pygame.display.update()
 
 pygame.quit()
-
