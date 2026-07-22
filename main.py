@@ -35,22 +35,22 @@ game_over_background = pygame.image.load('images/gameover.png')  # Replace with 
 game_over_background = pygame.transform.scale(game_over_background, (width, height))
 
 image = pygame.image.load('images/player_transparent.png')
-image = pygame.transform.scale(image, (250, 250))
+image = pygame.transform.scale(image, (350, 350))
 
 random_image = pygame.image.load('images/terminator_transparent.png')  # Replace with your obstacle image path
-random_image = pygame.transform.scale(random_image, (250, 250))
+random_image = pygame.transform.scale(random_image, (300, 300))
 
 random_image2 = pygame.image.load('images/terminator2_transparent.png')
-random_image2 = pygame.transform.scale(random_image2, (250, 250))  # Second random image
+random_image2 = pygame.transform.scale(random_image2, (300, 300))  # Second random image
 
 
 meteor_image = pygame.image.load('images/astriod_transparent.png')  # Replace with actual meteor image path
-meteor_image = pygame.transform.scale(meteor_image, (100, 100))
+meteor_image = pygame.transform.scale(meteor_image, (350, 350))
 
 
 # Player attributes
 player_x = width // 2
-player_y = height - 220
+player_y = height - 340
 player_speed = 7
 player_jump_speed = -15
 gravity = 0.5
@@ -198,35 +198,61 @@ while run:
             if len(rays) < 100:  # Limit the number of rays
                 # Start the laser from the gun side of the soldier.
                 if facing_right:
-                    ray_start_x = player_x + image.get_width() - 25
+                    ray_start_x = player_x + image.get_width() - 70
                 else:
-                    ray_start_x = player_x + 25
+                    ray_start_x = player_x + 70
 
                 new_ray = {
                     'x': ray_start_x,
-                    'y': player_y + image.get_height() // 4 - 21,
+                    'y': player_y + image.get_height() // 2 - 38,
                     'direction': ray_direction
                 }
                 rays.append(new_ray)
                 ray_sound.play()  # Play sound when ray is fired
 
-            # Move and update rays
-        for ray in rays:
+        # Create enemy collision rectangles before checking the lasers.
+        random_image_rect = pygame.Rect(
+            random_image_x,
+            random_image_y,
+            random_image.get_width(),
+            random_image.get_height()
+        )
+        random_image2_rect = pygame.Rect(
+            random_image2_x,
+            random_image2_y,
+            random_image2.get_width(),
+            random_image2.get_height()
+        )
+
+        # Move and update rays safely. Loop through a copy so rays can be removed.
+        for ray in rays[:]:
             ray['x'] += ray['direction'] * ray_speed
-            if ray['x'] < 0 or ray['x'] > width:
-                rays.remove(ray)  # Remove ray if it goes off the screen
+            remove_ray = False
 
-            ray_rect = pygame.Rect(ray['x'], ray['y'], ray_length, ray_width)
+            # Remove the ray when it leaves the screen.
+            if ray['x'] < -ray_length or ray['x'] > width + ray_length:
+                remove_ray = True
+            else:
+                ray_rect = pygame.Rect(
+                    ray['x'],
+                    ray['y'],
+                    ray_length,
+                    ray_width
+                )
 
-            # Check collisions with random images
-            if ray_rect.colliderect(random_image_rect):
-                random_image_visible = False
-                random_image_sound.stop()
-                rays.remove(ray)  # Remove ray on collision with random image
-            if ray_rect.colliderect(random_image2_rect):
-                random_image2_visible = False
-                random_image_sound.stop()
-                rays.remove(ray)  # Remove ray on collision with random image 2
+                # A ray can hit only one enemy in a frame.
+                if random_image_visible and ray_rect.colliderect(random_image_rect):
+                    random_image_visible = False
+                    random_image_sound.stop()
+                    remove_ray = True
+                elif random_image2_visible and ray_rect.colliderect(random_image2_rect):
+                    random_image2_visible = False
+                    random_image_sound.stop()
+                    remove_ray = True
+
+            # Remove each ray at most once.
+            if remove_ray and ray in rays:
+                rays.remove(ray)
 
         # Spawn random image at random intervals
         random_spawn_timer -= delta_time
@@ -296,23 +322,31 @@ while run:
                 meteor_visible = False
                 meteor_sound.stop()
 
-        ray_rect = pygame.Rect(ray_x, ray_y, ray_length, ray_width)
-        random_image_rect = pygame.Rect(random_image_x, random_image_y, random_image.get_width(),
-                                        random_image.get_height())
-        random_image2_rect = pygame.Rect(random_image2_x, random_image2_y, random_image2.get_width(),
-                                         random_image2.get_height())
-        player_rect = pygame.Rect(player_x, player_y, image.get_width(), image.get_height())
-        meteor_rect = pygame.Rect(meteor_x, meteor_y, meteor_image.get_width(), meteor_image.get_height())
-
-        if ray_active:
-            for ray in rays:
-                ray_rect = pygame.Rect(ray['x'], ray['y'], ray_length, ray_width)
-                if ray_rect.colliderect(random_image_rect):
-                    random_image_visible = False
-                    rays.remove(ray)  # Remove ray on collision with random image
-                if ray_rect.colliderect(random_image2_rect):
-                    random_image2_visible = False
-                    rays.remove(ray)  # Remove ray on collision with random image 2
+        # Rebuild collision rectangles after enemy movement.
+        random_image_rect = pygame.Rect(
+            random_image_x,
+            random_image_y,
+            random_image.get_width(),
+            random_image.get_height()
+        )
+        random_image2_rect = pygame.Rect(
+            random_image2_x,
+            random_image2_y,
+            random_image2.get_width(),
+            random_image2.get_height()
+        )
+        player_rect = pygame.Rect(
+            player_x,
+            player_y,
+            image.get_width(),
+            image.get_height()
+        )
+        meteor_rect = pygame.Rect(
+            meteor_x,
+            meteor_y,
+            meteor_image.get_width(),
+            meteor_image.get_height()
+        )
 
         # Collision detection between player and random images
         if player_rect.colliderect(random_image_rect) or player_rect.colliderect(random_image2_rect):
